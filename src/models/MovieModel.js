@@ -21,16 +21,13 @@ const schema = new mongoose.Schema({
     required: true
   },
   release_year: {
-    type: String,
-    required: true
+    type: String
   },
   genre: {
-    type: String,
-    required: true
+    type: String
   },
   description: {
-    type: String,
-    required: true
+    type: String
   }
 })
 

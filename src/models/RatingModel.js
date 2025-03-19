@@ -16,13 +16,11 @@ const schema = new mongoose.Schema({
     trim: true,
     minlength: 1
   },
-  text: {
-    type: String,
-    required: true
+  rating: {
+    type: String
   },
   movie: {
-    type: String,
-    required: true
+    type: String
   }
 })
 
