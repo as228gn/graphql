@@ -7,6 +7,11 @@ export const resolvers = {
     // Resolver för 'movies' query
     movies: async () => {
       return await controller.getMovies();  // Hämtar alla filmer från databasen
+    },
+
+    // Resolver för att hämta en specifik film
+    movie: async (_, { id }) => {
+      return await controller.getMovieById(id); // Hämtar en film baserat på id
     }
   },
 }
