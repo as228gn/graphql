@@ -15,24 +15,33 @@ export class MovieController {
    * @param {object} req - Express request object.
    * @param {object} res - Express response object.
    */
-  async getMovies(rating) {
+  async getMovies({ genreName, rating }) {
     try {
-      let query = 'SELECT * FROM film'
-      let param
-console.log(rating)
-
-  // Lägg till filter för releaseYear om det finns
-  if (rating) {
-   
-      query += ' WHERE rating = ?'
-    
-    param = rating
+      let query = `
+    SELECT f.film_id, f.title, f.description, f.release_year, f.rating 
+    FROM film f
+    JOIN film_category fc ON f.film_id = fc.film_id
+    JOIN category c ON fc.category_id = c.category_id
+  `
+  let params = []
+   // Lägg till filter för genre om genreName finns
+   if (genreName) {
+    query += ' WHERE c.name = ?'
+    params.push(genreName)
   }
-  console.log(param)
-  const [movies] = await db.query(query, param)
+
+  // Lägg till filter för rating om det finns
+  if (rating) {
+    if (params.length > 0) {
+      query += ' AND f.rating = ?'
+    } else {
+      query += ' WHERE f.rating = ?'
+    }
+    params.push(rating)
+  }
+  
+  const [movies] = await db.query(query, params)
   return movies
-      // const [movies] = await db.query('SELECT * FROM film')  // Byt ut 'movie' med rätt tabellnamn om det behövs
-      // return movies  // Returnera resultaten som en lista med filmer
     } catch (error) {
       throw new Error('Could not fetch movies: ' + error.message);
     }

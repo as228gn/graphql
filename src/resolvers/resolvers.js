@@ -5,14 +5,18 @@ export const resolvers = {
  
   Query: {
     // Resolver för 'movies' query
-    movies: async (_, { rating }) => {
-      let param
+    movies: async (_, { genreName, rating }) => {
+      const filters = {}
+
+      if (genreName) {
+        filters.genreName = genreName;  // Lägg till filter för genreName om det finns
+      }
       
       if (rating) {
-        param = rating  // Lägg till filter för release year om det finns
+        filters.rating = rating // Lägg till filter för release year om det finns
       }
 
-      const movies = await controller.getMovies(param) // Hämtar alla filmer från databasen
+      const movies = await controller.getMovies(filters) // Hämtar alla filmer från databasen
       // För varje film, hämta aktörerna och lägg till dem i filmen
       for (let movie of movies) {
         const actors = await controller.getActorsForMovie(movie.film_id)  // Hämtar aktörer för filmen

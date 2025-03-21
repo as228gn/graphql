@@ -3,10 +3,18 @@ import gql from 'graphql-tag'
 
 export const typeDefs = gql`
  type Query {
-    movies(rating: String): [Movie!]!
+    movies(genreName: String, rating: String): [Movie!]!
     movie(id: ID!): Movie
     actors: [Actor!]!
   }
+
+  type Mutation {
+  createMovie(title: String!, description: String, releaseYear: Int!, rating: String!): Movie!
+
+  updateMovie(id: ID!, title: String, description: String, releaseYear: Int, rating: String): Movie!
+
+  deleteMovie(id: ID!): Boolean!
+}
 
 type Movie {
     film_id: ID
