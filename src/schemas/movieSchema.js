@@ -3,8 +3,9 @@ import gql from 'graphql-tag'
 
 export const typeDefs = gql`
  type Query {
-    movies: [Movie!]!
+    movies(rating: String): [Movie!]!
     movie(id: ID!): Movie
+    actors: [Actor!]!
   }
 
 type Movie {
@@ -12,20 +13,21 @@ type Movie {
     title: String
     description: String
     release_year: Int!
+    rating: String
     genre: Genre
     actors: [Actor]
   }
 
   type Actor {
-    id: ID!
+    actor_id: ID!
     first_name: String!
-    last_name: String!
+    last_name: String
     movies: [Movie]
   }
 
   type Genre {
-    id: ID!
-    name: String!
+    category_id: ID!
+    name: String
   }
 
   type Rental {
