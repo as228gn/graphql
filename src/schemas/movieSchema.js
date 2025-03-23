@@ -9,7 +9,7 @@ export const typeDefs = gql`
   }
 
   type Mutation {
-  createMovie(title: String!, description: String, releaseYear: Int!, rating: String!): Movie!
+  createMovie(title: String!, description: String, release_year: Int, rating: String): Movie
 
   updateMovie(id: ID!, title: String, description: String, releaseYear: Int, rating: String): Movie!
 
@@ -18,9 +18,9 @@ export const typeDefs = gql`
 
 type Movie {
     film_id: ID
-    title: String
+    title: String!
     description: String
-    release_year: Int!
+    release_year: Int
     rating: String
     genre: Genre
     actors: [Actor]

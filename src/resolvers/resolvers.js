@@ -2,7 +2,7 @@
 import { MovieController } from '../controllers/MovieController.js'  // För att hämta alla filmer
 const controller = new MovieController()
 export const resolvers = {
- 
+
   Query: {
     // Resolver för 'movies' query
     movies: async (_, { genreName, rating }) => {
@@ -11,7 +11,7 @@ export const resolvers = {
       if (genreName) {
         filters.genreName = genreName;  // Lägg till filter för genreName om det finns
       }
-      
+
       if (rating) {
         filters.rating = rating // Lägg till filter för release year om det finns
       }
@@ -41,4 +41,12 @@ export const resolvers = {
       return await controller.getActors()  // Hämtar alla filmer från databasen
     },
   },
+
+  Mutation: {
+    // Mutation för att skapa en ny film
+    createMovie: async (_, { title, description, release_year, rating }) => {
+      // Skapa filmen i databasen
+      return await controller.createMovie(title, description, release_year, rating)
+    }
+  }
 }

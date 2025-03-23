@@ -92,5 +92,25 @@ export class MovieController {
       throw new Error('Could not fetch actors: ' + error.message);
     }
   }
+
+  // Funktion för att skapa en ny film
+  async createMovie(title, description, release_year, rating) {
+    try {
+      const language_id = 1
+  
+      const [result] = await db.query(
+        'INSERT INTO film (title, description, release_year, language_id, rating) VALUES (?, ?, ?, ?, ?)',
+        [title, description, release_year, language_id, rating]
+      )
+
+      console.log(result.title)
+
+      return result.title
+  
+    } catch (error) {
+      // Fångar eventuella SQL-fel och loggar dem
+      console.error('Error executing SQL query:', error)
+    }
+  }
   
 }
