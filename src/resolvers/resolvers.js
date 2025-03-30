@@ -9,7 +9,7 @@ export const resolvers = {
       const filters = {}
 
       if (genreName) {
-        filters.genreName = genreName;  // Lägg till filter för genreName om det finns
+        filters.genreName = genreName  // Lägg till filter för genreName om det finns
       }
 
       if (rating) {
@@ -25,6 +25,9 @@ export const resolvers = {
         // Hämta genre för filmen
         const genre = await controller.getGenreForMovie(movie.film_id)
         movie.genre = genre  // Lägger till genre till filmen
+
+        const rentalCount = await controller.getRentalCountForMovie(id)
+        movie.rentalCount = rentalCount
       }
       return movies
     },
@@ -32,14 +35,20 @@ export const resolvers = {
     // Resolver för att hämta en specifik film
     movie: async (_, { id }) => {
       const movie = await controller.getMovieById(id) // Hämtar en film baserat på id
-      const actors = await controller.getActorsForMovie(id); // Hämtar aktörer för filmen
+      const actors = await controller.getActorsForMovie(id) // Hämtar aktörer för filmen
+      const genres = await controller.getGenreForMovie(id)
+      const rentalCount = await controller.getRentalCountForMovie(id)
+
       movie.actors = actors
+      movie.genre = genres
+      movie.rentalCount = rentalCount
       return movie
     },
 
     actors: async () => {
       return await controller.getActors()  // Hämtar alla filmer från databasen
     },
+    
   },
 
   Mutation: {
@@ -47,6 +56,14 @@ export const resolvers = {
     createMovie: async (_, { title, description, release_year, rating }) => {
       // Skapa filmen i databasen
       return await controller.createMovie(title, description, release_year, rating)
+    },
+
+    deleteMovie: async (_, { id }) => {
+      return await controller.deleteMovie(id);
+    },
+
+    updateMovie: async (_, { id, title, description, releaseYear, rating }) => {
+      return await controller.updateMovie(id, title, description, releaseYear, rating)
     }
   }
 }

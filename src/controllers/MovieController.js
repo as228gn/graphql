@@ -93,14 +93,39 @@ export class MovieController {
     }
   }
 
+  async getRentalCountForMovie(id) {
+    try {
+      const query = `
+        SELECT f.film_id, f.title, COUNT(r.rental_id) AS rental_count
+        FROM film f
+        JOIN inventory i ON f.film_id = i.film_id
+        JOIN rental r ON i.inventory_id = r.inventory_id
+        WHERE f.film_id = ?
+        GROUP BY f.film_id, f.title;
+      `
+  
+      const [rows] = await db.query(query, [id])
+  
+      if (rows.length > 0) {
+        return rows[0].rental_count // Returnera antal uthyrningar
+      } else {
+        return 0 // Om ingen uthyrning hittades, returnera 0
+      }
+    } catch (error) {
+      console.error("Error fetching rental count:", error)
+      return 0
+    }
+  }
+  
+
   // Funktion för att skapa en ny film
   async createMovie(title, description, release_year, rating) {
     try {
       const language_id = 1
   
       const [result] = await db.query(
-        'INSERT INTO film (title, description, release_year, language_id, rating) VALUES (?, ?, ?, ?, ?)',
-        [title, description, release_year, language_id, rating]
+        'INSERT INTO film (title, description, release_year, rating) VALUES (?, ?, ?, ?)',
+        [title, description, release_year, rating]
       )
 
       console.log(result.title)
@@ -110,6 +135,73 @@ export class MovieController {
     } catch (error) {
       // Fångar eventuella SQL-fel och loggar dem
       console.error('Error executing SQL query:', error)
+    }
+  }
+
+  async deleteMovie(id) {
+    try {
+      // Kör DELETE-frågan i databasen
+      const [result] = await db.query(
+        'DELETE FROM film WHERE film_id = ?',
+        [id]
+      )
+  
+      // Kontrollera om en rad faktiskt raderades
+      if (result.affectedRows > 0) {
+        console.log(`Film med ID ${id} raderades.`)
+        return true
+      } else {
+        console.log(`Ingen film hittades med ID ${id}.`)
+        return false
+      }
+    } catch (error) {
+      // Fångar eventuella SQL-fel och loggar dem
+      console.error('Error executing SQL query:', error)
+      return false
+    }
+  }
+
+  async updateMovie(id, title, description, releaseYear, rating) {
+    try {
+      // Bygg dynamiskt SQL för att uppdatera endast de fält som skickas in
+      const updates = []
+      const values = []
+  
+      if (title) {
+        updates.push("title = ?")
+        values.push(title);
+      }
+      if (description) {
+        updates.push("description = ?")
+        values.push(description);
+      }
+      if (releaseYear) {
+        updates.push("release_year = ?")
+        values.push(releaseYear)
+      }
+      if (rating) {
+        updates.push("rating = ?")
+        values.push(rating)
+      }
+  
+      if (updates.length == 0) {
+        throw new Error("Inga uppdateringar angavs.")
+      }
+  
+      values.push(id) // ID ska vara sista parametern i VALUES
+  
+      const query = `UPDATE film SET ${updates.join(", ")} WHERE film_id = ?`
+      const [result] = await db.query(query, values)
+  
+      if (result.affectedRows > 0) {
+        console.log(`Film med ID ${id} uppdaterades.`)
+        return await this.getMovieById(id); // Hämta och returnera den uppdaterade filmen
+      } else {
+        throw new Error(`Ingen film hittades med ID ${id}.`)
+      }
+    } catch (error) {
+      console.error("Error updating movie:", error)
+      throw new Error("Kunde inte uppdatera filmen.")
     }
   }
   

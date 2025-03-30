@@ -22,6 +22,7 @@ type Movie {
     description: String
     release_year: Int
     rating: String
+    rentalCount: Int
     genre: Genre
     actors: [Actor]
   }
