@@ -99,6 +99,8 @@ typings/
 # Optional npm cache directory
 .npm
 
+private.pem
+
 # Optional eslint cache
 .eslintcache
 

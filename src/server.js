@@ -1,6 +1,6 @@
 import { ApolloServer } from '@apollo/server';  // Importera Apollo Server
 import { startStandaloneServer } from '@apollo/server/standalone';  // För att köra Apollo Server utan Express
-import { typeDefs } from './schemas/movieSchema.js';  // Importera schema (GraphQL)
+import { typeDefs } from './schemas/typeDefs.js';  // Importera schema (GraphQL)
 import { resolvers } from './resolvers/resolvers.js';  // Importera resolvers
 import db from './config/db.js';  // Databasanslutning
 

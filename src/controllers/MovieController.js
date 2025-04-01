@@ -121,14 +121,12 @@ export class MovieController {
   // Funktion för att skapa en ny film
   async createMovie(title, description, release_year, rating) {
     try {
-      const language_id = 1
+      // const language_id = 1
   
       const [result] = await db.query(
         'INSERT INTO film (title, description, release_year, rating) VALUES (?, ?, ?, ?)',
         [title, description, release_year, rating]
       )
-
-      console.log(result.title)
 
       return result.title
   
