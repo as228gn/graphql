@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt'
 import { JsonWebToken } from '../lib/JsonWebToken.js'
 import db from '../config/db.js'
+import fs from 'fs'
 
 /**
  * Encapsulates a controller.
@@ -43,6 +44,7 @@ export class UserController {
   }
 
   async loginUser (username, password) {
+    const jwtPrivateKey = fs.readFileSync('./private.pem', 'utf8')
     const [users] = await db.query("SELECT * FROM user WHERE username = ?", [username])
     
       if (users.length === 0) {
@@ -55,9 +57,9 @@ export class UserController {
         throw new Error("Invalid username or password")
       }
 
-      const token = await JsonWebToken.encodeUser(user, "DIN_HEMLIGA_NYCKEL", 3600)
+      const token = await JsonWebToken.encodeUser(user, jwtPrivateKey, 3600)
 
-      return { token, user }
+      return token
       
   }
 }

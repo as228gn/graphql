@@ -10,10 +10,10 @@ import db from '../config/db.js'
  */
 export class MovieController {
   /**
-   * The startpage.
+   * A query that gives you all the movies with an option to filter them by genre or rating.
    *
-   * @param {object} req - Express request object.
-   * @param {object} res - Express response object.
+   * @param genreName - The genre that you would like to filter your answer on.
+   * @param rating - The rating you would like to filter your answer on.
    */
   async getMovies({ genreName, rating }) {
     try {
@@ -23,30 +23,35 @@ export class MovieController {
     JOIN film_category fc ON f.film_id = fc.film_id
     JOIN category c ON fc.category_id = c.category_id
   `
-  let params = []
-   // Lägg till filter för genre om genreName finns
-   if (genreName) {
-    query += ' WHERE c.name = ?'
-    params.push(genreName)
-  }
+      let params = []
+      // Add filter for genre if genre exists
+      if (genreName) {
+        query += ' WHERE c.name = ?'
+        params.push(genreName)
+      }
 
-  // Lägg till filter för rating om det finns
-  if (rating) {
-    if (params.length > 0) {
-      query += ' AND f.rating = ?'
-    } else {
-      query += ' WHERE f.rating = ?'
-    }
-    params.push(rating)
-  }
-  
-  const [movies] = await db.query(query, params)
-  return movies
+      // Add filter for rating if rating exists
+      if (rating) {
+        if (params.length > 0) {
+          query += ' AND f.rating = ?'
+        } else {
+          query += ' WHERE f.rating = ?'
+        }
+        params.push(rating)
+      }
+
+      const [movies] = await db.query(query, params)
+      return movies
     } catch (error) {
       throw new Error('Could not fetch movies: ' + error.message);
     }
   }
 
+  /**
+   * A query that gives you a specific film based on an id.
+   *
+   * @param id - The id of the film to retrieve.
+   */
   async getMovieById(id) {
     try {
       const [result] = await db.query('SELECT * FROM film WHERE film_id = ?', [id])
@@ -57,6 +62,11 @@ export class MovieController {
     }
   }
 
+  /**
+   * A query that gives you the genre for a specific movie.
+   *
+   * @param id - The id of the movie to retrieve the genre from.
+   */
   async getGenreForMovie(id) {
     try {
       const [result] = await db.query(`
@@ -64,13 +74,17 @@ export class MovieController {
         FROM category c
         JOIN film_category fc ON fc.category_id = c.category_id
         WHERE fc.film_id = ?`, [id])
-        const genre = result[0]
+      const genre = result[0]
       return genre
     } catch (error) {
       throw new Error('Could not fetch genre: ' + error.message);
     }
   }
 
+   /**
+    * A query that gives you all the actors.
+    *
+    */
   async getActors() {
     try {
       const [actors] = await db.query('SELECT * FROM actor')
@@ -80,6 +94,11 @@ export class MovieController {
     }
   }
 
+   /**
+    * A query that gives you all the actors from a specific movie
+    *
+    * @param id - The id of the film to retrieve the actors from.
+    */
   async getActorsForMovie(id) {
     try {
       const [actors] = await db.query(`
@@ -93,6 +112,11 @@ export class MovieController {
     }
   }
 
+   /**
+   * A query that gives you the rental count for a specific movie..
+   *
+   * @param id - The id of the film to retrieve the rental count from
+   */
   async getRentalCountForMovie(id) {
     try {
       const query = `
@@ -103,68 +127,82 @@ export class MovieController {
         WHERE f.film_id = ?
         GROUP BY f.film_id, f.title;
       `
-  
+
       const [rows] = await db.query(query, [id])
-  
+
       if (rows.length > 0) {
-        return rows[0].rental_count // Returnera antal uthyrningar
+        return rows[0].rental_count
       } else {
-        return 0 // Om ingen uthyrning hittades, returnera 0
+        return 0
       }
     } catch (error) {
       console.error("Error fetching rental count:", error)
       return 0
     }
   }
-  
 
-  // Funktion för att skapa en ny film
+
+   /**
+   * A query that creates a new movie, it needs a jwt to function.
+   *
+   * @param title - The title of the film to create.
+   * @param description - The description of the film to create.
+   * @param release_year - The release year of the film to create
+   * @param rating - The rating of the film to create
+   */
   async createMovie(title, description, release_year, rating) {
     try {
-      // const language_id = 1
-  
+      const language_id = 1
+
       const [result] = await db.query(
-        'INSERT INTO film (title, description, release_year, rating) VALUES (?, ?, ?, ?)',
-        [title, description, release_year, rating]
+        'INSERT INTO film (title, description, release_year, language_id, rating) VALUES (?, ?, ?, ?, ?)',
+        [title, description, release_year, language_id, rating]
       )
 
-      return result.title
-  
+      return await this.getMovieById(result.insertId)
+
+
     } catch (error) {
-      // Fångar eventuella SQL-fel och loggar dem
       console.error('Error executing SQL query:', error)
     }
   }
 
+   /**
+   * A query that deletes a movie, it needs a jwt to function.
+   *
+   * @param id - The id of the film to delete.
+   */
   async deleteMovie(id) {
     try {
-      // Kör DELETE-frågan i databasen
       const [result] = await db.query(
         'DELETE FROM film WHERE film_id = ?',
         [id]
       )
-  
-      // Kontrollera om en rad faktiskt raderades
+
       if (result.affectedRows > 0) {
-        console.log(`Film med ID ${id} raderades.`)
         return true
       } else {
-        console.log(`Ingen film hittades med ID ${id}.`)
         return false
       }
     } catch (error) {
-      // Fångar eventuella SQL-fel och loggar dem
-      console.error('Error executing SQL query:', error)
       return false
     }
   }
 
+   /**
+   * A query that updates a movie, it needs a jwt to function.
+   *
+   * @param id - The id of the movie to update.
+   * @param title - The title of the movie to update.
+   * @param description - The description of the movie to update.
+   * @param releaseYear - The release year of the movie to update.
+   * @param rating - The rating of the movie to update.
+   */
   async updateMovie(id, title, description, releaseYear, rating) {
     try {
-      // Bygg dynamiskt SQL för att uppdatera endast de fält som skickas in
       const updates = []
       const values = []
-  
+
       if (title) {
         updates.push("title = ?")
         values.push(title);
@@ -181,26 +219,24 @@ export class MovieController {
         updates.push("rating = ?")
         values.push(rating)
       }
-  
+
       if (updates.length == 0) {
-        throw new Error("Inga uppdateringar angavs.")
+        throw new Error("No updates where given.")
       }
-  
-      values.push(id) // ID ska vara sista parametern i VALUES
-  
+
+      values.push(id) // ID should be the last parameter
+
       const query = `UPDATE film SET ${updates.join(", ")} WHERE film_id = ?`
       const [result] = await db.query(query, values)
-  
+
       if (result.affectedRows > 0) {
-        console.log(`Film med ID ${id} uppdaterades.`)
-        return await this.getMovieById(id); // Hämta och returnera den uppdaterade filmen
+        return await this.getMovieById(id)
       } else {
-        throw new Error(`Ingen film hittades med ID ${id}.`)
+        throw new Error(`No movie with ID: ${id} found.`)
       }
     } catch (error) {
-      console.error("Error updating movie:", error)
-      throw new Error("Kunde inte uppdatera filmen.")
+      throw new Error("Could not find the movie.")
     }
   }
-  
+
 }

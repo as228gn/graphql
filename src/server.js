@@ -3,6 +3,7 @@ import { startStandaloneServer } from '@apollo/server/standalone';  // För att 
 import { typeDefs } from './schemas/typeDefs.js';  // Importera schema (GraphQL)
 import { resolvers } from './resolvers/resolvers.js';  // Importera resolvers
 import db from './config/db.js';  // Databasanslutning
+import { authenticateJWT } from './middlewares/auth.js';
 
 // Hantera databasanslutningen
 db.getConnection()
@@ -20,7 +21,10 @@ const serverApollo = new ApolloServer({
 
 // Starta Apollo Server utan Express (standalone server)
 const { url } = await startStandaloneServer(serverApollo, {
-  context: ({ req }) => ({ req }),  // Om du behöver något i kontexten, t.ex. autentisering
+  context: async ({ req }) => { 
+    const user = await authenticateJWT(req)
+    return { user }
+   },  // Om du behöver något i kontexten, t.ex. autentisering
   listen: { port: process.env.PORT || 3000 },  // Välj port (standard är 3000)
 });
 

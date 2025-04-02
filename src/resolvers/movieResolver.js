@@ -1,30 +1,26 @@
-// Importera controllerfunktioner som hanterar databasinteraktioner
-import { MovieController } from '../controllers/MovieController.js'  // För att hämta alla filmer
+import { MovieController } from '../controllers/MovieController.js'
 const controller = new MovieController()
 export const movieResolver = {
 
   Query: {
-    // Resolver för 'movies' query
     movies: async (_, { genreName, rating }) => {
       const filters = {}
 
       if (genreName) {
-        filters.genreName = genreName  // Lägg till filter för genreName om det finns
+        filters.genreName = genreName
       }
 
       if (rating) {
-        filters.rating = rating // Lägg till filter för release year om det finns
+        filters.rating = rating
       }
 
-      const movies = await controller.getMovies(filters) // Hämtar alla filmer från databasen
-      // För varje film, hämta aktörerna och lägg till dem i filmen
+      const movies = await controller.getMovies(filters)
       for (let movie of movies) {
-        const actors = await controller.getActorsForMovie(movie.film_id)  // Hämtar aktörer för filmen
+        const actors = await controller.getActorsForMovie(movie.film_id)
         movie.actors = actors
 
-        // Hämta genre för filmen
         const genre = await controller.getGenreForMovie(movie.film_id)
-        movie.genre = genre  // Lägger till genre till filmen
+        movie.genre = genre
 
         const rentalCount = await controller.getRentalCountForMovie(movie.film_id)
         movie.rentalCount = rentalCount
@@ -32,10 +28,9 @@ export const movieResolver = {
       return movies
     },
 
-    // Resolver för att hämta en specifik film
     movie: async (_, { id }) => {
-      const movie = await controller.getMovieById(id) // Hämtar en film baserat på id
-      const actors = await controller.getActorsForMovie(id) // Hämtar aktörer för filmen
+      const movie = await controller.getMovieById(id)
+      const actors = await controller.getActorsForMovie(id)
       const genres = await controller.getGenreForMovie(id)
       const rentalCount = await controller.getRentalCountForMovie(id)
 
@@ -46,23 +41,30 @@ export const movieResolver = {
     },
 
     actors: async () => {
-      return await controller.getActors()  // Hämtar alla filmer från databasen
+      return await controller.getActors()
     },
     
   },
 
   Mutation: {
-    // Mutation för att skapa en ny film
-    createMovie: async (_, { title, description, release_year, rating }) => {
-      // Skapa filmen i databasen
+    createMovie: async (_, { title, description, release_year, rating }, context) => {
+      if (!context.user) {
+        throw new Error("Unauthorized")
+      }
       return await controller.createMovie(title, description, release_year, rating)
     },
 
-    deleteMovie: async (_, { id }) => {
+    deleteMovie: async (_, { id }, context) => {
+      if (!context.user) {
+        throw new Error("Unauthorized")
+      }
       return await controller.deleteMovie(id);
     },
 
-    updateMovie: async (_, { id, title, description, releaseYear, rating }) => {
+    updateMovie: async (_, { id, title, description, releaseYear, rating }, context) => {
+      if (!context.user) {
+        throw new Error("Unauthorized")
+      }
       return await controller.updateMovie(id, title, description, releaseYear, rating)
     }
   }

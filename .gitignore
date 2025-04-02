@@ -101,6 +101,8 @@ typings/
 
 private.pem
 
+public.pem
+
 # Optional eslint cache
 .eslintcache
 
