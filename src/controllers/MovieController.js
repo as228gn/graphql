@@ -10,12 +10,15 @@ import db from '../config/db.js'
  */
 export class MovieController {
   /**
-   * A query that gives you all the movies with an option to filter them by genre or rating.
+   * Retrieves movies from the database based on optional filters (genre and rating). This function constructs a dynamic SQL query to fetch movies from the database, with optional filters for genre and rating. If either of the filters is provided, the query is modified to include those conditions.
    *
-   * @param genreName - The genre that you would like to filter your answer on.
-   * @param rating - The rating you would like to filter your answer on.
+   * @param {object} params - The parameters object containing optional filter values.
+   * @param {string} [params.genreName] - The name of the genre to filter movies by.
+   * @param {number} [params.rating] - The rating to filter movies by.
+   * @returns {Promise<Array>} A promise that resolves to an array of movies that match the filters.
+   * @throws {Error} If there is an issue with the SQL query or database connection.
    */
-  async getMovies({ genreName, rating }) {
+  async getMovies ({ genreName, rating }) {
     try {
       let query = `
     SELECT f.film_id, f.title, f.description, f.release_year, f.rating 
@@ -23,7 +26,7 @@ export class MovieController {
     JOIN film_category fc ON f.film_id = fc.film_id
     JOIN category c ON fc.category_id = c.category_id
   `
-      let params = []
+      const params = []
       // Add filter for genre if genre exists
       if (genreName) {
         query += ' WHERE c.name = ?'
@@ -43,31 +46,33 @@ export class MovieController {
       const [movies] = await db.query(query, params)
       return movies
     } catch (error) {
-      throw new Error('Could not fetch movies: ' + error.message);
+      throw new Error('Could not fetch movies: ' + error.message)
     }
   }
 
   /**
    * A query that gives you a specific film based on an id.
    *
-   * @param id - The id of the film to retrieve.
+   * @param {number} id - The id of the film to retrieve.
+   * @returns {object} - The movie.
    */
-  async getMovieById(id) {
+  async getMovieById (id) {
     try {
       const [result] = await db.query('SELECT * FROM film WHERE film_id = ?', [id])
       const movie = result[0]
       return movie
     } catch (error) {
-      throw new Error('Could not fetch movie: ' + error.message);
+      throw new Error('Could not fetch movie: ' + error.message)
     }
   }
 
   /**
    * A query that gives you the genre for a specific movie.
    *
-   * @param id - The id of the movie to retrieve the genre from.
+   * @param {number} id - The id of the movie to retrieve the genre from.
+   * @returns {string} - The genre of the movie.
    */
-  async getGenreForMovie(id) {
+  async getGenreForMovie (id) {
     try {
       const [result] = await db.query(`
         SELECT c.category_id, c.name
@@ -77,29 +82,32 @@ export class MovieController {
       const genre = result[0]
       return genre
     } catch (error) {
-      throw new Error('Could not fetch genre: ' + error.message);
+      throw new Error('Could not fetch genre: ' + error.message)
     }
   }
 
-   /**
-    * A query that gives you all the actors.
-    *
-    */
-  async getActors() {
+  /**
+   * A query that gives you all the actors.
+   *
+   * @returns {object} - The actors
+   */
+  async getActors () {
     try {
       const [actors] = await db.query('SELECT * FROM actor')
       return actors
     } catch (error) {
-      throw new Error('Could not fetch actors: ' + error.message);
+      throw new Error('Could not fetch actors: ' + error.message)
     }
   }
 
-   /**
-    * A query that gives you all the actors from a specific movie
-    *
-    * @param id - The id of the film to retrieve the actors from.
-    */
-  async getActorsForMovie(id) {
+  /**
+   * Retrieves a list of actors associated with a specific movie. This function queries the database to fetch the actors who are associated with a given movie (identified by its `id`). It returns an array of actors that appear in the movie,including their `actor_id`, `first_name`, and `last_name`.
+   *
+   * @param {number} id - The ID of the movie for which to fetch the actors.
+   * @returns {Promise<Array>} A promise that resolves to an array of actor objects, each containing `actor_id`, `first_name`, and `last_name`.
+   * @throws {Error} If there is an issue with the SQL query or database connection.
+   */
+  async getActorsForMovie (id) {
     try {
       const [actors] = await db.query(`
         SELECT a.actor_id, a.first_name, a.last_name
@@ -108,16 +116,17 @@ export class MovieController {
         WHERE fa.film_id = ?`, [id])
       return actors
     } catch (error) {
-      throw new Error('Could not fetch actors: ' + error.message);
+      throw new Error('Could not fetch actors: ' + error.message)
     }
   }
 
-   /**
+  /**
    * A query that gives you the rental count for a specific movie..
    *
-   * @param id - The id of the film to retrieve the rental count from
+   * @param {number} id - The id of the film to retrieve the rental count from.
+   * @returns {number} - The rental count.
    */
-  async getRentalCountForMovie(id) {
+  async getRentalCountForMovie (id) {
     try {
       const query = `
         SELECT f.film_id, f.title, COUNT(r.rental_id) AS rental_count
@@ -136,43 +145,41 @@ export class MovieController {
         return 0
       }
     } catch (error) {
-      console.error("Error fetching rental count:", error)
-      return 0
+      throw new Error('Error fetching rental count: ' + error.message)
     }
   }
 
-
-   /**
+  /**
    * A query that creates a new movie, it needs a jwt to function.
    *
-   * @param title - The title of the film to create.
-   * @param description - The description of the film to create.
-   * @param release_year - The release year of the film to create
-   * @param rating - The rating of the film to create
+   * @param {string} title - The title of the film to create.
+   * @param {string} description - The description of the film to create.
+   * @param {number} releaseYear - The release year of the film to create.
+   * @param {string} rating - The rating of the film to create.
+   * @returns {object} - The movie created.
    */
-  async createMovie(title, description, release_year, rating) {
+  async createMovie (title, description, releaseYear, rating) {
     try {
-      const language_id = 1
+      const languageId = 1
 
       const [result] = await db.query(
         'INSERT INTO film (title, description, release_year, language_id, rating) VALUES (?, ?, ?, ?, ?)',
-        [title, description, release_year, language_id, rating]
+        [title, description, releaseYear, languageId, rating]
       )
 
       return await this.getMovieById(result.insertId)
-
-
     } catch (error) {
-      console.error('Error executing SQL query:', error)
+      throw new Error('Could not create movie: ' + error.message)
     }
   }
 
-   /**
+  /**
    * A query that deletes a movie, it needs a jwt to function.
    *
-   * @param id - The id of the film to delete.
+   * @param {number} id - The id of the film to delete.
+   * @returns {boolean} - Returns true or false depending on if the deleting where succesfull or not.
    */
-  async deleteMovie(id) {
+  async deleteMovie (id) {
     try {
       const [result] = await db.query(
         'DELETE FROM film WHERE film_id = ?',
@@ -189,44 +196,45 @@ export class MovieController {
     }
   }
 
-   /**
+  /**
    * A query that updates a movie, it needs a jwt to function.
    *
-   * @param id - The id of the movie to update.
-   * @param title - The title of the movie to update.
-   * @param description - The description of the movie to update.
-   * @param releaseYear - The release year of the movie to update.
-   * @param rating - The rating of the movie to update.
+   * @param {number} id - The id of the movie to update.
+   * @param {string} title - The title of the movie to update.
+   * @param {string} description - The description of the movie to update.
+   * @param {number} releaseYear - The release year of the movie to update.
+   * @param {string} rating - The rating of the movie to update.
+   * @returns {object} - The movie updated.
    */
-  async updateMovie(id, title, description, releaseYear, rating) {
+  async updateMovie (id, title, description, releaseYear, rating) {
     try {
       const updates = []
       const values = []
 
       if (title) {
-        updates.push("title = ?")
-        values.push(title);
+        updates.push('title = ?')
+        values.push(title)
       }
       if (description) {
-        updates.push("description = ?")
-        values.push(description);
+        updates.push('description = ?')
+        values.push(description)
       }
       if (releaseYear) {
-        updates.push("release_year = ?")
+        updates.push('release_year = ?')
         values.push(releaseYear)
       }
       if (rating) {
-        updates.push("rating = ?")
+        updates.push('rating = ?')
         values.push(rating)
       }
 
-      if (updates.length == 0) {
-        throw new Error("No updates where given.")
+      if (updates.length === 0) {
+        throw new Error('No updates where given.')
       }
 
       values.push(id) // ID should be the last parameter
 
-      const query = `UPDATE film SET ${updates.join(", ")} WHERE film_id = ?`
+      const query = `UPDATE film SET ${updates.join(', ')} WHERE film_id = ?`
       const [result] = await db.query(query, values)
 
       if (result.affectedRows > 0) {
@@ -235,8 +243,7 @@ export class MovieController {
         throw new Error(`No movie with ID: ${id} found.`)
       }
     } catch (error) {
-      throw new Error("Could not find the movie.")
+      throw new Error('Could not find the movie: ' + error.message)
     }
   }
-
 }

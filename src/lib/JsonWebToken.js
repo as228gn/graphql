@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken'
  * Exposes methods for working with JSON Web Tokens (JWTs).
  */
 export class JsonWebToken {
-   /**
+  /**
    * Encodes user information into a JSON Web Token (JWT) payload.
    *
    * @param {object} user - The user object containing user information to encode.
@@ -19,7 +19,7 @@ export class JsonWebToken {
    * @param {number} expiresIn - The expiration time for the JWT, specified in seconds.
    * @returns {Promise<string>} A Promise that resolves to the generated JWT.
    */
-   static async encodeUser (user, secret, expiresIn) {
+  static async encodeUser (user, secret, expiresIn) {
     const payload = {
       sub: user.id
     }
@@ -43,6 +43,7 @@ export class JsonWebToken {
       )
     })
   }
+
   /**
    * Decodes a JWT and returns the user object extracted from the payload.
    *

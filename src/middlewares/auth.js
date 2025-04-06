@@ -5,20 +5,18 @@
  * @version 1.0.0
  */
 
-import http from 'node:http'
 import { JsonWebToken } from '../lib/JsonWebToken.js'
 import fs from 'fs'
 
 /**
- * Authenticates a request based on a JSON Web Token (JWT).
+ * Authenticates a request by verifying the JWT token in the Authorization header. This function checks the `Authorization` header for a Bearer token, verifies the JWT token using a public key, and returns the decoded user if the authentication is successful. If the token is missing or invalid, it returns `null`.
  *
- * This middleware checks the authorization header of the request, verifies the authentication scheme,
- * decodes the JWT using the provided secret key, and attaches the decoded user object to the `req.user` property.
- * If the authentication fails, an unauthorized response with a 401 Unauthorized status code is sent.
- *
- * @param {object} req - Express request object.
- * @param {object} res - Express response object.
- * @param {Function} next - Express next middleware function.
+ * @async
+ * @param {object} req - The HTTP request object.
+ * @param {object} req.headers - The headers of the HTTP request.
+ * @param {string} req.headers.authorization - The Authorization header containing the Bearer token.
+ * @returns {Promise<object|null>} A promise that resolves to the decoded user object if the token is valid, or `null` if the token is missing or invalid.
+ * @throws {Error} If the Authorization header scheme is not 'Bearer', an error is thrown.
  */
 export const authenticateJWT = async (req) => {
   if (!req.headers.authorization) return null
@@ -32,10 +30,9 @@ export const authenticateJWT = async (req) => {
     }
 
     return await JsonWebToken.decodeUser(token, jwtPublicKey)
-
   } catch (error) {
     // Authentication failed.
-    console.error("Authentication failed: ", error.message)
+    console.error('Authentication failed: ', error.message)
     return null
   }
 }

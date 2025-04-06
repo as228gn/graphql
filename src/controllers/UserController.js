@@ -7,21 +7,18 @@ import fs from 'fs'
  * Encapsulates a controller.
  */
 export class UserController {
-
   /**
-   * Registrerar en ny användare i MySQL via GraphQL.
+   * Registers a new user, hashes the password and stores it in the database.
    *
-   * @param {object} parent - GraphQL parent object (används inte här).
-   * @param {object} args - Argument som skickas från GraphQL.
+   * @param {string} username - The username of the new user.
+   * @param {string} password - The password of the new user.
    * @returns {Promise<object>} Returnerar den skapade användaren.
    */
-  async registerUser(username, password) {
+  async registerUser (username, password) {
     try {
-      // Hasha lösenordet innan det sparas
       const salt = await bcrypt.genSalt(10)
       const hashedPassword = await bcrypt.hash(password, salt)
 
-      // Lägg till användaren i databasen
       const [result] = await db.query(
         'INSERT INTO user (username, password) VALUES (?, ?)',
         [username, hashedPassword]
@@ -30,36 +27,41 @@ export class UserController {
       const [user] = await db.query('SELECT id_user, username FROM user WHERE id_user = ?', [result.insertId])
 
       if (user.length === 0) {
-        throw new Error("User not found after insertion");
+        throw new Error('User not found after insertion')
       }
 
       return user[0]
-
     } catch (error) {
-      if (error.code == 'ER_DUP_ENTRY') {
-        throw new Error('Username already exists')
+      if (error.code === 'ER_DUP_ENTRY') {
+        throw new Error('Non valid username')
       }
       throw new Error('Error registering user')
     }
   }
 
+  /**
+   * Logs in a user and gives a jwt for authentication.
+   *
+   * @param {string} username - The username of the user.
+   * @param {string} password - The password of the user.
+   * @returns {string} - The jwt to use for authorization.
+   */
   async loginUser (username, password) {
     const jwtPrivateKey = fs.readFileSync('./private.pem', 'utf8')
-    const [users] = await db.query("SELECT * FROM user WHERE username = ?", [username])
-    
-      if (users.length === 0) {
-        throw new Error("Invalid username or password")
-      }
-      const user = users[0]
+    const [users] = await db.query('SELECT * FROM user WHERE username = ?', [username])
 
-      const isMatch = await bcrypt.compare(password, user.password)
-      if (!isMatch) {
-        throw new Error("Invalid username or password")
-      }
+    if (users.length === 0) {
+      throw new Error('Invalid username or password')
+    }
+    const user = users[0]
 
-      const token = await JsonWebToken.encodeUser(user, jwtPrivateKey, 3600)
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) {
+      throw new Error('Invalid username or password')
+    }
 
-      return token
-      
+    const token = await JsonWebToken.encodeUser(user, jwtPrivateKey, 3600)
+
+    return token
   }
 }

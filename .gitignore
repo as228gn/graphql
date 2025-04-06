@@ -103,6 +103,8 @@ private.pem
 
 public.pem
 
+certs/
+
 # Optional eslint cache
 .eslintcache
 
