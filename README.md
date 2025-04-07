@@ -6,7 +6,7 @@ GraphQL
 
 # Links 
 - [Production url](https://cscloud6-21.lnu.se/Graphql/)
-- Documentation provided in postman see instructions further down under [Testing with postman](#testing-with-postman).
+- [Documentation url](https://documenter.getpostman.com/view/31224856/2sB2cVehDq)
 
 ## Description
 ### GraphQL API for Movies
@@ -38,7 +38,7 @@ Example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
      - **Configure Environment Variables:** Set up the `.env` file with required environment variables.
 ### Testing with Postman:
 - Import the Collection  
-Download the `API-Assignment.postman_collection.json` file from the repo. Import it to postman. To view documentation press view complete documentation.
+Download the `API-Assignment.postman_collection.json` file from the repo. Import it to postman.
 - Set Up Environment Variables  
 Download the `GraphQl.postman_environment.json` file from the repo. Import it to postman.
 - Run the Tests  
