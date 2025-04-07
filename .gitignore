@@ -99,11 +99,9 @@ typings/
 # Optional npm cache directory
 .npm
 
-private.pem
-
 public.pem
-
-certs/
+private.pem
+DigiCertGlobalRootCA.crt.pem
 
 # Optional eslint cache
 .eslintcache
