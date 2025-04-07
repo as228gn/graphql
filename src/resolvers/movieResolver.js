@@ -24,9 +24,11 @@ export const movieResolver = {
      * @param {object} args - The arguments for the query.
      * @param {string} [args.genreName] - Optional genre filter.
      * @param {number} [args.rating] - Optional rating filter.
+     * @param {number} [args.limit=100] - The number of movies to return. Defaults to 100.
+     * @param {number} [args.offset=0] - The number of movies to skip from the beginning of the result set.
      * @returns {Promise<Array>} List of movies that match the filters.
      */
-    movies: async (_, { genreName, rating }) => {
+    movies: async (_, { genreName, rating, limit = 100, offset = 0 }) => {
       const filters = {}
 
       if (genreName) {
@@ -37,18 +39,23 @@ export const movieResolver = {
         filters.rating = rating
       }
 
-      const movies = await controller.getMovies(filters)
+      const movies = await controller.getMovies(filters, limit + 1, offset)
+
+      const hasMore = movies.length > limit
+      if (hasMore) movies.pop()
+
       for (const movie of movies) {
-        const actors = await controller.getActorsForMovie(movie.film_id)
+        const [actors, genre, rentalCount] = await Promise.all([
+          controller.getActorsForMovie(movie.film_id),
+          controller.getGenreForMovie(movie.film_id),
+          controller.getRentalCountForMovie(movie.film_id)
+        ])
         movie.actors = actors
-
-        const genre = await controller.getGenreForMovie(movie.film_id)
         movie.genre = genre
-
-        const rentalCount = await controller.getRentalCountForMovie(movie.film_id)
         movie.rentalCount = rentalCount
       }
-      return movies
+
+      return { movies, hasMore }
     },
 
     /**
@@ -123,7 +130,21 @@ export const movieResolver = {
       if (!context.user) {
         throw new Error('Unauthorized')
       }
-      return await controller.deleteMovie(id)
+      const result = await controller.deleteMovie(id)
+
+      if (result.success) {
+        return {
+          success: true,
+          message: result.message,
+          deletedFilmId: result.deletedFilmId
+        }
+      } else {
+        return {
+          success: false,
+          message: result.message || 'Failed to delete the movie.',
+          deletedFilmId: null
+        }
+      }
     },
 
     /**

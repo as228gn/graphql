@@ -15,10 +15,12 @@ export class MovieController {
    * @param {object} params - The parameters object containing optional filter values.
    * @param {string} [params.genreName] - The name of the genre to filter movies by.
    * @param {number} [params.rating] - The rating to filter movies by.
+   * @param {number} limit - The number of movies to return. Defaults to 100.
+   * @param {number} offset - The number of movies to skip from the beginning of the result set.
    * @returns {Promise<Array>} A promise that resolves to an array of movies that match the filters.
    * @throws {Error} If there is an issue with the SQL query or database connection.
    */
-  async getMovies ({ genreName, rating }) {
+  async getMovies ({ genreName, rating }, limit = 100, offset = 0) {
     try {
       let query = `
     SELECT f.film_id, f.title, f.description, f.release_year, f.rating 
@@ -42,6 +44,10 @@ export class MovieController {
         }
         params.push(rating)
       }
+
+      query += ' ORDER BY f.film_id LIMIT ? OFFSET ?'
+      params.push(limit)
+      params.push(offset)
 
       const [movies] = await db.query(query, params)
       return movies
@@ -187,12 +193,12 @@ export class MovieController {
       )
 
       if (result.affectedRows > 0) {
-        return true
+        return { success: true, message: 'Movie deleted', deletedFilmId: id }
       } else {
-        return false
+        return { success: false, message: 'No movie found to delete.' }
       }
     } catch (error) {
-      return false
+      return { success: false, message: 'An error occurred while deleting the movie.' }
     }
   }
 

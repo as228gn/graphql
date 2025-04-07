@@ -1,0 +1,1840 @@
+{
+	"info": {
+		"_postman_id": "25bdc5a8-756d-4e4c-99b1-80fb0d3160f6",
+		"name": "API-Assignment",
+		"description": "A GraphQl API that gives you movies, it actors and to see if it is a popular movie you can also get the rental counts for the film.\n\nIt returns the first 100 movies. If `hasMore` is true, it indicates that more movies are available. To retrieve the next 100, set the `offset` variable to the previous offset value plus 100, ensuring that you fetch the subsequent set of results in order.\n\nThe response may include the following fields:\n\n- `film_id` (integer)\n    \n- `title` (string)\n    \n- `description` (string)\n    \n- `release_year` (integer)\n    \n- `rating` (string)\n    \n- `rentalCount` (integer)\n    \n- `genre`:\n    \n    - `category_id` (integer)\n        \n    - `name` (string)\n        \n- `actors`:\n    \n    - `actor_id` (integer)\n        \n    - `first_name` (string)\n        \n    - `last_name` (string)\n        \n\nIt is possible to filter your response on either genre, rating or both.\n\n**The available genres for filtering are:**\n\n`Action`\n\n`Animation`\n\n`Children`\n\n`Classics`\n\n`Comedy`\n\n`Documentary`\n\n`Drama`\n\n`Family`\n\n`Foreign`\n\n`Games`\n\n`Horror`\n\n`Music`\n\n`New`\n\n`Sci-fi`\n\n`Sports`\n\n`Travel`\n\n**The available ratings for filtering are:**\n\n`G`\n\n`PG`\n\n`R`\n\n`PG-13`\n\n`NC-17`\n\nYou can also get all the actors, then the response may include:\n\n- `actor_id` (integer)\n    \n- `first_name` (string)\n    \n- `last_name` (string)\n    \n\nIf you register and log in it is possible to create, update and delete movies. The fields available to create and update are:\n\n- `title` (string)\n    \n- `description` (string)\n    \n- `release_year` (integer)\n    \n- `rating` (string)\n    \n\nFor creating a movie the title field are required.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31224856"
+	},
+	"item": [
+		{
+			"name": "SequenceTest",
+			"item": [
+				{
+					"name": "Log in using non valid credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Should not return JWT for invalid credentials\", function () {\r",
+									"    const res = pm.response.json();\r",
+									"\r",
+									"    // Kontrollera att 'errors' finns\r",
+									"    pm.expect(res).to.have.property(\"errors\");\r",
+									"    pm.expect(res.errors[0].message).to.equal(\"Invalid username or password\");\r",
+									"\r",
+									"    // Kontrollera att 'data' är null\r",
+									"    pm.expect(res.data).to.eql(null);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generera ett slumpmässigt nummer för att skapa unika användare\r",
+									"const randomNum = Math.floor(Math.random() * 1000000); \r",
+									"\r",
+									"// Skapa unik användarnamn och lösenord\r",
+									"pm.environment.set(\"randomUsername\", `user${randomNum}`);\r",
+									"pm.environment.set(\"randomPassword\", `Password${randomNum}!`);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Mutation($username: String!, $password: String!) {\r\n  loginUser(username: $username, password: $password)\r\n}",
+								"variables": "{  \"username\": \"{{randomUsername}}\",\r\n  \"password\": \"{{randomPassword}}\"\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://cscloud6-21.lnu.se/Graphql/",
+							"protocol": "https",
+							"host": [
+								"cscloud6-21",
+								"lnu",
+								"se"
+							],
+							"path": [
+								"Graphql",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register User using valid input",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response should be successful\", function () {\r",
+									"    pm.response.to.have.status(200); // Kontrollera att HTTP-statusen är 200 OK\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response should be a valid JSON\", function () {\r",
+									"    pm.response.to.be.json; // Kontrollera att svaret är JSON\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Register User should return user data\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.data.registerUser).to.have.property(\"id_user\");\r",
+									"    pm.expect(jsonData.data.registerUser).to.have.property(\"username\").that.is.a(\"string\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Username should match the provided value\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    let providedUsername = pm.variables.get(\"randomUsername\");\r",
+									"    pm.expect(jsonData.data.registerUser.username).to.equal(providedUsername);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Mutation($username: String!, $password: String!) {\r\n  registerUser(username: $username, password: $password) {\r\n    id_user\r\n    username\r\n  }\r\n}",
+								"variables": "{\r\n  \"username\": \"{{randomUsername}}\",\r\n  \"password\": \"{{randomPassword}}\"\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://cscloud6-21.lnu.se/Graphql/",
+							"protocol": "https",
+							"host": [
+								"cscloud6-21",
+								"lnu",
+								"se"
+							],
+							"path": [
+								"Graphql",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register user with already existing username",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Should not register user with existing username\", function () {\r",
+									"    const res = pm.response.json();\r",
+									"\r",
+									"    // Kontrollera att 'errors' finns\r",
+									"    pm.expect(res).to.have.property(\"errors\");\r",
+									"    pm.expect(res.errors[0].message).to.equal(\"Non valid username\");\r",
+									"\r",
+									"    // Kontrollera att 'data' är null\r",
+									"    pm.expect(res.data).to.eql(null);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Mutation($username: String!, $password: String!) {\r\n  registerUser(username: $username, password: $password) {\r\n    id_user\r\n    username\r\n  }\r\n}",
+								"variables": "{\r\n  \"username\": \"{{randomUsername}}\",\r\n  \"password\": \"{{randomPassword}}\"\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://cscloud6-21.lnu.se/Graphql/",
+							"protocol": "https",
+							"host": [
+								"cscloud6-21",
+								"lnu",
+								"se"
+							],
+							"path": [
+								"Graphql",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Log in using valid credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json();\r",
+									"console.log(\"Response:\", response); // Logga svaret i Postman Console\r",
+									"\r",
+									"if (response.data && response.data.loginUser && response.data.loginUser) {\r",
+									"    let token = response.data.loginUser;\r",
+									"    pm.environment.set(\"jwt_token\", token);\r",
+									"    console.log(\"JWT Token saved:\", token);\r",
+									"} else {\r",
+									"    console.log(\"Token not found in response\");\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response should be successful\", function () {\r",
+									"    pm.response.to.have.status(200); // Kontrollera att HTTP-statusen är 200 OK\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response should be a valid JSON\", function () {\r",
+									"    pm.response.to.be.json; // Kontrollera att svaret är JSON\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Login should return a valid response\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.data.loginUser).to.not.be.null; // Kontrollera att loginUser finns i svaret\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Login should return a JWT token\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(jsonData.data.loginUser, 'loginUser should be present in the response').to.exist;\r",
+									"\r",
+									"    let jwtToken = jsonData.data.loginUser;\r",
+									"\r",
+									"    // Kontrollera att tokenen i svaret är samma som den sparade tokenen (om den sparats som miljövariabel)\r",
+									"    let savedJwtToken = pm.environment.get('jwt_token');\r",
+									" \r",
+									"    pm.expect(jwtToken, 'Token should be a non-empty string').to.be.a('string').that.is.not.empty;\r",
+									"    pm.expect(savedJwtToken, 'JWT token should be the same as the returned token').to.equal(jwtToken);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Mutation($username: String!, $password: String!) {\r\n  loginUser(username: $username, password: $password)\r\n}",
+								"variables": "{  \"username\": \"{{randomUsername}}\",\r\n  \"password\": \"{{randomPassword}}\"\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://cscloud6-21.lnu.se/Graphql/",
+							"protocol": "https",
+							"host": [
+								"cscloud6-21",
+								"lnu",
+								"se"
+							],
+							"path": [
+								"Graphql",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Movie",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const id = pm.response.json().data.createMovie.film_id\r",
+									"pm.environment.set(\"movieId\", id);\r",
+									"// Kontrollera att svaret är 200 OK\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Kontrollera att JWT används korrekt\r",
+									"pm.test(\"JWT token is included\", function () {\r",
+									"    pm.expect(pm.environment.get('jwt_token')).to.not.be.undefined;\r",
+									"});\r",
+									"\r",
+									"// Hämta JSON-svar\r",
+									"let response = pm.response.json();\r",
+									"\r",
+									"// Kontrollera att createMovie returnerar en film_id\r",
+									"pm.test(\"Movie created successfully\", function () {\r",
+									"    pm.expect(response.data.createMovie).to.have.property(\"film_id\");\r",
+									"});\r",
+									"\r",
+									"// Kontrollera att filmens titel är korrekt\r",
+									"pm.test(\"Movie title matches\", function () {\r",
+									"    pm.expect(response.data.createMovie.title).to.eql(pm.environment.get('randomTitle'));\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Helper function to generate a random integer in a given range\r",
+									"function getRandomInt(min, max) {\r",
+									"    return Math.floor(Math.random() * (max - min + 1)) + min;\r",
+									"}\r",
+									"\r",
+									"// Helper function to generate a random string with a given length\r",
+									"function getRandomString(length) {\r",
+									"    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';\r",
+									"    let result = '';\r",
+									"    for (let i = 0; i < length; i++) {\r",
+									"        result += chars.charAt(Math.floor(Math.random() * chars.length));\r",
+									"    }\r",
+									"    return result;\r",
+									"}\r",
+									"\r",
+									"// Set random values for the request body\r",
+									"const title = \"Movie \" + getRandomString(5); // Random movie title\r",
+									"const description = \"A \" + getRandomString(8) + \" movie.\"; // Random description\r",
+									"const releaseYear = getRandomInt(1980, 2023); // Random release year between 1980 and 2023\r",
+									"const rating = ['G', 'PG', 'PG-13', 'R', 'NC-17'][getRandomInt(0, 3)]; // Random rating from the list\r",
+									"\r",
+									"// Set environment variables to use in the request body\r",
+									"pm.environment.set(\"randomTitle\", title);\r",
+									"pm.environment.set(\"randomDescription\", description);\r",
+									"pm.environment.set(\"randomReleaseYear\", releaseYear);\r",
+									"pm.environment.set(\"randomRating\", rating);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Mutation($title: String!, $description: String, $releaseYear: Int, $rating: String) {\r\n  createMovie(title: $title, description: $description, releaseYear: $releaseYear, rating: $rating) {\r\n    film_id\r\n    title\r\n    description\r\n    release_year\r\n    rating\r\n  }\r\n}",
+								"variables": "{\r\n  \"title\": \"{{randomTitle}}\",\r\n  \"description\": \"{{randomDescription}}\",\r\n  \"releaseYear\": {{randomReleaseYear}},\r\n  \"rating\": \"{{randomRating}}\"\r\n}\r\n"
+							}
+						},
+						"url": {
+							"raw": "https://cscloud6-21.lnu.se/Graphql/",
+							"protocol": "https",
+							"host": [
+								"cscloud6-21",
+								"lnu",
+								"se"
+							],
+							"path": [
+								"Graphql",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a Movie with no credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Should not allow movie creation without credentials\", function () {\r",
+									"    const res = pm.response.json();\r",
+									"\r",
+									"    // Kontrollera att 'errors' finns\r",
+									"    pm.expect(res).to.have.property(\"errors\");\r",
+									"\r",
+									"    // Kontrollera att rätt felmeddelande returneras\r",
+									"    pm.expect(res.errors[0].message).to.equal(\"Unauthorized\");\r",
+									"\r",
+									"    // Kontrollera att error-koden finns och är logisk (kan variera beroende på implementation)\r",
+									"    pm.expect(res.errors[0].extensions.code).to.equal(\"INTERNAL_SERVER_ERROR\");\r",
+									"\r",
+									"    // Kontrollera att createMovie är null (dvs inget objekt skapades)\r",
+									"    pm.expect(res.data).to.have.property(\"createMovie\", null);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Mutation($title: String!, $description: String, $releaseYear: Int, $rating: String) {\r\n  createMovie(title: $title, description: $description, releaseYear: $releaseYear, rating: $rating) {\r\n    film_id\r\n    title\r\n    description\r\n    release_year\r\n    rating\r\n  }\r\n}",
+								"variables": "{\r\n  \"title\": \"{{randomTitle}}\",\r\n  \"description\": \"{{randomDescription}}\",\r\n  \"releaseYear\": {{randomReleaseYear}},\r\n  \"rating\": \"{{randomRating}}\"\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://cscloud6-21.lnu.se/Graphql/",
+							"protocol": "https",
+							"host": [
+								"cscloud6-21",
+								"lnu",
+								"se"
+							],
+							"path": [
+								"Graphql",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Movie",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response should be successful\", function () {\r",
+									"    pm.response.to.have.status(200); // Kontrollera att HTTP-statusen är 200 OK\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response should be a valid JSON\", function () {\r",
+									"    pm.response.to.be.json; // Kontrollera att svaret är JSON\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Movie update should return updated movie data\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.data.updateMovie).to.have.property(\"film_id\").that.is.a(\"string\");\r",
+									"    pm.expect(jsonData.data.updateMovie).to.have.property(\"title\").that.is.a(\"string\");\r",
+									"    pm.expect(jsonData.data.updateMovie).to.have.property(\"description\").that.is.a(\"string\");\r",
+									"    pm.expect(jsonData.data.updateMovie).to.have.property(\"rating\").that.is.a(\"string\");\r",
+									"    pm.expect(jsonData.data.updateMovie).to.have.property(\"release_year\").that.is.a(\"number\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Updated movie title should match the provided title\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.data.updateMovie.title).to.equal(pm.environment.get('randomTitle'));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Updated movie description should match the provided description\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.data.updateMovie.description).to.equal(pm.environment.get('randomDescription'));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Updated movie rating should match the provided rating\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.data.updateMovie.rating).to.equal(pm.environment.get('randomRating'));\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Helper function to generate a random integer in a given range\r",
+									"function getRandomInt(min, max) {\r",
+									"    return Math.floor(Math.random() * (max - min + 1)) + min;\r",
+									"}\r",
+									"\r",
+									"// Helper function to generate a random string with a given length\r",
+									"function getRandomString(length) {\r",
+									"    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';\r",
+									"    let result = '';\r",
+									"    for (let i = 0; i < length; i++) {\r",
+									"        result += chars.charAt(Math.floor(Math.random() * chars.length));\r",
+									"    }\r",
+									"    return result;\r",
+									"}\r",
+									"\r",
+									"// Set random values for the request body\r",
+									"const title = \"Movie \" + getRandomString(5); // Random movie title\r",
+									"const description = \"A \" + getRandomString(8) + \" movie.\"; // Random description\r",
+									"\r",
+									"// Set environment variables to use in the request body\r",
+									"pm.environment.set(\"randomTitle\", title);\r",
+									"pm.environment.set(\"randomDescription\", description);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Mutation($updateMovieId: ID!, $title: String, $description: String, $releaseYear: Int, $rating: String) {\r\n  updateMovie(id: $updateMovieId, title: $title, description: $description, release_year: $releaseYear, rating: $rating) {\r\n    film_id\r\n    title\r\n    description\r\n    release_year\r\n    rating\r\n  }\r\n}",
+								"variables": "{\r\n  \"updateMovieId\": {{movieId}},\r\n  \"title\": \"{{randomTitle}}\",\r\n  \"description\": \"{{randomDescription}}\",\r\n  \"releaseYear\": {{randomReleaseYear}},\r\n  \"rating\": \"{{randomRating}}\"\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://cscloud6-21.lnu.se/Graphql/",
+							"protocol": "https",
+							"host": [
+								"cscloud6-21",
+								"lnu",
+								"se"
+							],
+							"path": [
+								"Graphql",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update a movie with no credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Should not allow movie update without credentials\", function () {\r",
+									"    const res = pm.response.json();\r",
+									"\r",
+									"    // Kontrollera att 'errors' finns\r",
+									"    pm.expect(res).to.have.property(\"errors\");\r",
+									"\r",
+									"    // Kolla att felmeddelandet är \"Unauthorized\"\r",
+									"    pm.expect(res.errors[0].message).to.equal(\"Unauthorized\");\r",
+									"\r",
+									"    // Kontrollera att error-koden är korrekt\r",
+									"    pm.expect(res.errors[0].extensions.code).to.equal(\"INTERNAL_SERVER_ERROR\");\r",
+									"\r",
+									"    // Kontrollera att ingen data returneras (null)\r",
+									"    pm.expect(res).to.have.property(\"data\");\r",
+									"    pm.expect(res.data).to.eql(null);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Mutation($updateMovieId: ID!, $title: String, $description: String, $releaseYear: Int, $rating: String) {\r\n  updateMovie(id: $updateMovieId, title: $title, description: $description, release_year: $releaseYear, rating: $rating) {\r\n    film_id\r\n    title\r\n    description\r\n    release_year\r\n    rating\r\n  }\r\n}",
+								"variables": "{\r\n  \"updateMovieId\": {{movieId}},\r\n  \"title\": \"{{randomTitle}}\",\r\n  \"description\": \"{{randomDescription}}\",\r\n  \"releaseYear\": {{randomReleaseYear}},\r\n  \"rating\": \"{{randomRating}}\"\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://cscloud6-21.lnu.se/Graphql/",
+							"protocol": "https",
+							"host": [
+								"cscloud6-21",
+								"lnu",
+								"se"
+							],
+							"path": [
+								"Graphql",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Movie",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Statuskod är 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"deleteMovie finns i response\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.data).to.have.property(\"deleteMovie\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"deletedFilmId är inte tomt\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.data.deleteMovie.deletedFilmId).to.exist;\r",
+									"    pm.expect(jsonData.data.deleteMovie.deletedFilmId).to.not.be.null;\r",
+									"    pm.expect(jsonData.data.deleteMovie.deletedFilmId).to.be.a(\"string\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Mutation($deleteMovieId: ID!) {\r\n  deleteMovie(id: $deleteMovieId) {\r\n    deletedFilmId\r\n  }\r\n}",
+								"variables": "{\r\n  \"deleteMovieId\": {{movieId}}\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://cscloud6-21.lnu.se/Graphql/",
+							"protocol": "https",
+							"host": [
+								"cscloud6-21",
+								"lnu",
+								"se"
+							],
+							"path": [
+								"Graphql",
+								""
+							]
+						},
+						"description": "Possible fields:\n\n`deletedFilmId` (integer)\n\n`message` (string)\n\n`success` (boolean)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Movie with no credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Should not allow movie deletion without credentials\", function () {\r",
+									"    const res = pm.response.json();\r",
+									"\r",
+									"    // Kontrollera att vi får ett 'errors'-fält\r",
+									"    pm.expect(res).to.have.property(\"errors\");\r",
+									"\r",
+									"    // Kontrollera felmeddelandet\r",
+									"    pm.expect(res.errors[0].message).to.equal(\"Unauthorized\");\r",
+									"\r",
+									"    // Kontrollera att rätt error code används\r",
+									"    pm.expect(res.errors[0].extensions.code).to.equal(\"INTERNAL_SERVER_ERROR\");\r",
+									"\r",
+									"    // Kontrollera att ingen data returneras\r",
+									"    pm.expect(res).to.have.property(\"data\");\r",
+									"    pm.expect(res.data).to.eql(null);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Mutation($deleteMovieId: ID!) {\r\n  deleteMovie(id: $deleteMovieId) {\r\n    deletedFilmId\r\n  }\r\n}",
+								"variables": "{\r\n  \"deleteMovieId\": {{movieId}}\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://cscloud6-21.lnu.se/Graphql/",
+							"protocol": "https",
+							"host": [
+								"cscloud6-21",
+								"lnu",
+								"se"
+							],
+							"path": [
+								"Graphql",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "A sequence that, register a user, logs in the user, creates a movie, update that movie and deletes that movie."
+		},
+		{
+			"name": "Fetch First 100 Movies",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Kontrollera att svaret är OK\r",
+							"pm.test(\"Response status is 200\", function () {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Kontrollera att datan finns\r",
+							"pm.test(\"Response has movies data\", function () {\r",
+							"  const jsonData = pm.response.json();\r",
+							"  pm.expect(jsonData.data.movies).to.be.an(\"object\");\r",
+							"  pm.expect(jsonData.data.movies.movies).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"// Kontrollera att max 100 filmer returneras\r",
+							"pm.test(\"Max 100 movies returned\", function () {\r",
+							"  const jsonData = pm.response.json();\r",
+							"  pm.expect(jsonData.data.movies.movies.length).to.be.at.most(100);\r",
+							"});\r",
+							"\r",
+							"// Kontrollera att film_id finns på alla filmer\r",
+							"pm.test(\"All movies have title\", function () {\r",
+							"  const jsonData = pm.response.json();\r",
+							"  const movies = jsonData.data.movies.movies;\r",
+							"  movies.forEach(movie => {\r",
+							"    pm.expect(movie.title).to.exist;\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"// Kontrollera att hasMore är boolean\r",
+							"pm.test(\"hasMore is boolean\", function () {\r",
+							"  const jsonData = pm.response.json();\r",
+							"  pm.expect(jsonData.data.movies.hasMore).to.be.a(\"boolean\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($limit: Int, $offset: Int) {\r\n  movies(limit: $limit, offset: $offset) {\r\n    movies {\r\n      film_id\r\n      title\r\n      description\r\n      release_year\r\n      rating\r\n    }\r\n    hasMore\r\n  }\r\n}\r\n\r\n",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				},
+				"description": "This returns the first 100 movies. If `hasMore` is true, it indicates that more movies are available. To retrieve the next 100, set the `offset` variable to the previous offset value plus 100, ensuring that you fetch the subsequent set of results in order.\n\nPossible fields that can be retrieved in the response include:\n\n- `film_id` (integer)\n    \n- `title` (string)\n    \n- `release_year` (integer)\n    \n- `rating` (integer)"
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch 100 First Movies with wrong query parameter",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should return validation error for misspelled field\", function () {\r",
+							"    const res = pm.response.json();\r",
+							"\r",
+							"    // Kontrollera att 'errors' finns\r",
+							"    pm.expect(res).to.have.property(\"errors\");\r",
+							"\r",
+							"    // Kontrollera felmeddelandet\r",
+							"    pm.expect(res.errors[0].message).to.include('Cannot query field \"titl\"');\r",
+							"    pm.expect(res.errors[0].message).to.include('Did you mean \"title\"?');\r",
+							"\r",
+							"    // Kontrollera felkod om du vill (frivilligt)\r",
+							"    pm.expect(res.errors[0].extensions.code).to.equal(\"GRAPHQL_VALIDATION_FAILED\");\r",
+							"\r",
+							"    // Kontrollera att 'data' inte finns\r",
+							"    pm.expect(res).to.not.have.property(\"data\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($limit: Int, $offset: Int) {\r\n  movies(limit: $limit, offset: $offset) {\r\n    movies {\r\n      titl\r\n    }\r\n    hasMore\r\n  }\r\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch First 100 Movies with actors, genre and rentalCount",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Test: Statuskod ska vara 200\r",
+							"pm.test(\"Response status is 200\", function () {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Test: movies och hasMore existerar\r",
+							"pm.test(\"Response includes 'movies' and 'hasMore'\", function () {\r",
+							"  pm.expect(jsonData.data.movies).to.be.an(\"object\");\r",
+							"  pm.expect(jsonData.data.movies.movies).to.be.an(\"array\");\r",
+							"  pm.expect(jsonData.data.movies.hasMore).to.be.a(\"boolean\");\r",
+							"});\r",
+							"\r",
+							"// Test: Max 100 filmer returneras\r",
+							"pm.test(\"No more than 100 movies are returned\", function () {\r",
+							"  pm.expect(jsonData.data.movies.movies.length).to.be.at.most(100);\r",
+							"});\r",
+							"\r",
+							"// Test: Varje film har nödvändiga fält\r",
+							"pm.test(\"Each movie includes all required fields\", function () {\r",
+							"  jsonData.data.movies.movies.forEach(movie => {\r",
+							"    pm.expect(movie.title).to.be.a(\"string\");\r",
+							"  });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($limit: Int, $offset: Int) {\r\n  movies(limit: $limit, offset: $offset) {\r\n    movies {\r\n      film_id\r\n      title\r\n      description\r\n      release_year\r\n      rating\r\n      rentalCount\r\n      genre {\r\n        name\r\n      }\r\n      actors {\r\n        first_name\r\n        last_name\r\n      }\r\n    }\r\n    hasMore\r\n  }\r\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				},
+				"description": "This returns the first 100 movies. If `hasMore` is true, it indicates that more movies are available. To retrieve the next 100, set the `offset` variable to the previous offset value plus 100, ensuring that you fetch the subsequent set of results in order.\n\nThe response may include the following fields:\n\n- `film_id` (integer)\n    \n- `title` (string)\n    \n- `description` (string)\n    \n- `release_year` (integer)\n    \n- `rating` (string)\n    \n- `rentalCount` (integer)\n    \n- `genre`:\n    \n    - `category_id` (integer)\n        \n    - `name` (string)\n        \n- `actors`:\n    \n    - `actor_id` (integer)\n        \n    - `first_name` (string)\n        \n    - `last_name` (string)"
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch First 100 Movies filtered on genre",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"const result = jsonData.data?.movies;\r",
+							"\r",
+							"// Test to ensure response is successful\r",
+							"pm.test(\"Response status is 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Test that movies and hasMore are present\r",
+							"pm.test(\"Movies and hasMore exist\", () => {\r",
+							"  pm.expect(result).to.have.property(\"movies\");\r",
+							"  pm.expect(result).to.have.property(\"hasMore\");\r",
+							"});\r",
+							"\r",
+							"// Test that the number of movies is not more than the limit\r",
+							"pm.test(\"No more than the specified limit of movies\", () => {\r",
+							"  pm.expect(result.movies.length).to.be.at.most(100);\r",
+							"});\r",
+							"\r",
+							"// Test that genre filter is applied\r",
+							"pm.test(\"Movies are filtered by genreName\", () => {\r",
+							"  result.movies.forEach(movie => {\r",
+							"    pm.expect(movie.genre.name).to.equal(pm.environment.get('randomGenre'));\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"// Test that each movie contains necessary fields\r",
+							"pm.test(\"Each movie has the necessary fields\", () => {\r",
+							"  result.movies.forEach(movie => {\r",
+							"    pm.expect(movie).to.have.property(\"title\");\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"\r",
+							"// Test that hasMore works correctly (i.e., returns true if there are more movies)\r",
+							"pm.test(\"hasMore indicates if there are more movies\", () => {\r",
+							"  const hasMore = result.hasMore;\r",
+							"  pm.expect(hasMore).to.be.a(\"boolean\");\r",
+							"  if (hasMore) {\r",
+							"    console.log(\"There are more movies to fetch\");\r",
+							"  } else {\r",
+							"    console.log(\"This is the last page of results\");\r",
+							"  }\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Lista över kategorier som ska randomiseras\r",
+							"const categories = [\r",
+							"    \"Action\", \"Animation\", \"Children\", \"Classics\", \"Comedy\", \r",
+							"    \"Documentary\", \"Drama\", \"Family\", \"Foreign\", \"Games\", \r",
+							"    \"Horror\", \"Music\", \"New\", \"Sci-fi\", \"Sports\", \"Travel\"\r",
+							"];\r",
+							"\r",
+							"// Funktion för att randomisera ett värde från listan\r",
+							"function getRandomCategory() {\r",
+							"    const randomIndex = Math.floor(Math.random() * categories.length);\r",
+							"    return categories[randomIndex];\r",
+							"}\r",
+							"\r",
+							"// Välj en kategori slumpmässigt\r",
+							"const randomGenre = getRandomCategory();\r",
+							"\r",
+							"// Sätt den slumpmässiga kategorin som en miljövariabel i Postman\r",
+							"pm.environment.set(\"randomGenre\", randomGenre);\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($limit: Int, $offset: Int, $genreName: String) {\r\n  movies(limit: $limit, offset: $offset, genreName: $genreName) {\r\n    movies {\r\n      film_id\r\n      title\r\n      description\r\n      release_year\r\n      rating\r\n      rentalCount\r\n      genre {\r\n        name\r\n      }\r\n    }\r\n    hasMore\r\n  }\r\n}",
+						"variables": "{\r\n  \"genreName\": \"{{randomGenre}}\"\r\n}"
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				},
+				"description": "This returns the first 100 movies. If `hasMore` is true, it indicates that more movies are available. To retrieve the next 100, set the `offset` variable to the previous offset value plus 100, ensuring that you fetch the subsequent set of results in order.\n\n**The available genres for filtering are:**\n\n`Action`\n\n`Animation`\n\n`Children`\n\n`Classics`\n\n`Comedy`\n\n`Documentary`\n\n`Drama`\n\n`Family`\n\n`Foreign`\n\n`Games`\n\n`Horror`\n\n`Music`\n\n`New`\n\n`Sci-fi`\n\n`Sports`\n\n`Travel`"
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch First 100 Movies filtered on rating",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.variables.set(\"rating\", \"G\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"const result = jsonData.data?.movies;\r",
+							"\r",
+							"// Test to ensure response is successful\r",
+							"pm.test(\"Response status is 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Test that movies and hasMore exist\r",
+							"pm.test(\"Movies and hasMore exist\", () => {\r",
+							"  pm.expect(result).to.have.property(\"movies\");\r",
+							"  pm.expect(result).to.have.property(\"hasMore\");\r",
+							"});\r",
+							"\r",
+							"// Test that the number of movies is not more than the limit\r",
+							"pm.test(\"No more than the specified limit of movies\", () => {\r",
+							"  pm.expect(result.movies.length).to.be.at.most(100);\r",
+							"});\r",
+							"\r",
+							"// Test that the movies are filtered by the provided rating\r",
+							"pm.test(\"Movies are filtered by rating\", () => {\r",
+							"  result.movies.forEach(movie => {\r",
+							"    pm.expect(movie.rating).to.equal(pm.environment.get('randomRating'));\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"// Test that each movie contains necessary fields\r",
+							"pm.test(\"Each movie has the necessary fields\", () => {\r",
+							"  result.movies.forEach(movie => {\r",
+							"    pm.expect(movie).to.have.property(\"title\");\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"// Test that hasMore works correctly (i.e., returns true if there are more movies)\r",
+							"pm.test(\"hasMore indicates if there are more movies\", () => {\r",
+							"  const hasMore = result.hasMore;\r",
+							"  pm.expect(hasMore).to.be.a(\"boolean\");\r",
+							"  if (hasMore) {\r",
+							"    console.log(\"There are more movies to fetch\");\r",
+							"  } else {\r",
+							"    console.log(\"This is the last page of results\");\r",
+							"  }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($limit: Int, $offset: Int, $rating: String) {\r\n  movies(limit: $limit, offset: $offset, rating: $rating) {\r\n    movies {\r\n      film_id\r\n      title\r\n      description\r\n      release_year\r\n      rating\r\n      rentalCount\r\n      genre {\r\n        name\r\n      }\r\n    }\r\n    hasMore\r\n  }\r\n}",
+						"variables": "{\r\n  \"rating\": \"{{randomRating}}\"\r\n}"
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				},
+				"description": "This returns the first 100 movies. If `hasMore` is true, it indicates that more movies are available. To retrieve the next 100, set the `offset` variable to the previous offset value plus 100, ensuring that you fetch the subsequent set of results in order.\n\n**The available ratings for filtering are:**\n\n`G`\n\n`PG`\n\n`R`\n\n`PG-13`\n\n`NC-17`"
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch First 100 Movies filtered on genre and rating",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"const result = jsonData.data?.movies;\r",
+							"\r",
+							"// Test to ensure response is successful\r",
+							"pm.test(\"Response status is 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Test that movies and hasMore exist\r",
+							"pm.test(\"Movies and hasMore exist\", () => {\r",
+							"  pm.expect(result).to.have.property(\"movies\");\r",
+							"  pm.expect(result).to.have.property(\"hasMore\");\r",
+							"});\r",
+							"\r",
+							"// Test that the number of movies is not more than the limit\r",
+							"pm.test(\"No more than the specified limit of movies\", () => {\r",
+							"  pm.expect(result.movies.length).to.be.at.most(100);\r",
+							"});\r",
+							"\r",
+							"// Test that the movies are filtered by both rating and genre\r",
+							"pm.test(\"Movies are filtered by rating and genre\", () => {\r",
+							"  result.movies.forEach(movie => {\r",
+							"    pm.expect(movie.rating).to.equal(pm.environment.get('randomRating'));\r",
+							"    pm.expect(movie.genre.name).to.equal(pm.environment.get('randomGenre'));\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"// Test that each movie contains necessary fields\r",
+							"pm.test(\"Each movie has the necessary fields\", () => {\r",
+							"  result.movies.forEach(movie => {\r",
+							"    pm.expect(movie).to.have.property(\"title\");\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"// Test that hasMore works correctly (i.e., returns true if there are more movies)\r",
+							"pm.test(\"hasMore indicates if there are more movies\", () => {\r",
+							"  const hasMore = result.hasMore;\r",
+							"  pm.expect(hasMore).to.be.a(\"boolean\");\r",
+							"  if (hasMore) {\r",
+							"    console.log(\"There are more movies to fetch\");\r",
+							"  } else {\r",
+							"    console.log(\"This is the last page of results\");\r",
+							"  }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.variables.set(\"rating\", \"PG\");\r",
+							"pm.variables.set(\"genreName\", \"Children\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($limit: Int, $offset: Int, $rating: String, $genreName: String) {\r\n  movies(limit: $limit, offset: $offset, rating: $rating, genreName: $genreName) {\r\n    movies {\r\n      film_id\r\n      title\r\n      description\r\n      release_year\r\n      rating\r\n      rentalCount\r\n      genre {\r\n        name\r\n      }\r\n    }\r\n    hasMore\r\n  }\r\n}",
+						"variables": "{\r\n  \"rating\": \"{{randomRating}}\",\r\n  \"genreName\": \"{{randomGenre}}\"\r\n}"
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				},
+				"description": "This returns the first 100 movies. If `hasMore` is true, it indicates that more movies are available. To retrieve the next 100, set the `offset` variable to the previous offset value plus 100, ensuring that you fetch the subsequent set of results in order.\n\n**The available genres for filtering are:**\n\n`Action`\n\n`Animation`\n\n`Children`\n\n`Classics`\n\n`Comedy`\n\n`Documentary`\n\n`Drama`\n\n`Family`\n\n`Foreign`\n\n`Games`\n\n`Horror`\n\n`Music`\n\n`New`\n\n`Sci-fi`\n\n`Sports`\n\n`Travel`\n\n**The available ratings for filtering are:**\n\n`G`\n\n`PG`\n\n`R`\n\n`PG-13`\n\n`NC-17`"
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch a movie",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response should be successful\", function () {\r",
+							"    pm.response.to.have.status(200); // Kontrollera att HTTP-statusen är 200 OK\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response should be a valid JSON\", function () {\r",
+							"    pm.response.to.be.json; // Kontrollera att svaret är JSON\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Movie object should exist\", function () {\r",
+							"    let jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.data.movie).to.be.an(\"object\"); // Kontrollera att movie finns\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Movie should have a title\", function () {\r",
+							"    let jsonData = pm.response.json();\r",
+							"    let movie = jsonData.data.movie;\r",
+							"\r",
+							"    pm.expect(movie).to.have.property(\"title\").that.is.a(\"string\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each actor should have necessary fields\", function () {\r",
+							"    let jsonData = pm.response.json();\r",
+							"    jsonData.data.movie.actors.forEach(actor => {\r",
+							"        pm.expect(actor).to.have.property(\"first_name\").that.is.a(\"string\");\r",
+							"        pm.expect(actor).to.have.property(\"last_name\").that.is.a(\"string\");\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generera ett slumpmässigt movieId mellan 1 och 900\r",
+							"const movieId = Math.floor(Math.random() * 900) + 1;\r",
+							"\r",
+							"// Sätt movieId som en miljövariabel i Postman\r",
+							"pm.environment.set(\"movieId\", movieId);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($movieId: ID!) {\r\n  movie(id: $movieId) {\r\n    film_id\r\n    title\r\n    description\r\n    release_year\r\n    rating\r\n    rentalCount\r\n    genre {\r\n      name\r\n    }\r\n    actors {\r\n      first_name\r\n      last_name\r\n    }\r\n  }\r\n}",
+						"variables": "{\r\n  \"movieId\": {{movieId}}\r\n}"
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch a Movie with no id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should return error when required variable $movieId is missing\", function () {\r",
+							"    const res = pm.response.json();\r",
+							"\r",
+							"    // Kontrollera att det finns ett 'errors'-fält\r",
+							"    pm.expect(res).to.have.property(\"errors\");\r",
+							"\r",
+							"    // Kontrollera det specifika felmeddelandet\r",
+							"    pm.expect(res.errors[0].message).to.equal('Variable \"$movieId\" of required type \"ID!\" was not provided.');\r",
+							"\r",
+							"    // Kontrollera att rätt error code används\r",
+							"    pm.expect(res.errors[0].extensions.code).to.equal(\"BAD_USER_INPUT\");\r",
+							"\r",
+							"    // Kontrollera att 'data' inte finns (valideringsfel, alltså ingen data returneras)\r",
+							"    pm.expect(res).to.not.have.property(\"data\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($movieId: ID!) {\r\n  movie(id: $movieId) {\r\n    film_id\r\n    title\r\n    description\r\n    release_year\r\n    rating\r\n    rentalCount\r\n    genre {\r\n      name\r\n    }\r\n    actors {\r\n      first_name\r\n      last_name\r\n    }\r\n  }\r\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch All Actors",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response should be successful\", function () {\r",
+							"    pm.response.to.have.status(200); // Kontrollera att HTTP-statusen är 200 OK\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response should be a valid JSON\", function () {\r",
+							"    pm.response.to.be.json; // Kontrollera att svaret är JSON\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Actors array should not be empty\", function () {\r",
+							"    let jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.data.actors).to.be.an('array').that.is.not.empty;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each actor should have necessary fields\", function () {\r",
+							"    let jsonData = pm.response.json();\r",
+							"    jsonData.data.actors.forEach(actor => {\r",
+							"        pm.expect(actor).to.have.property(\"first_name\").that.is.a(\"string\");\r",
+							"        pm.expect(actor).to.have.property(\"last_name\").that.is.a(\"string\");\r",
+							"        pm.expect(actor).to.have.property(\"actor_id\");\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query {\r\n  actors {\r\n    last_name\r\n    first_name\r\n    actor_id\r\n  }\r\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch All Actors with wrong query parameter",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should return error for incorrect query parameter (field name)\", function () {\r",
+							"    const res = pm.response.json();\r",
+							"\r",
+							"    // Kontrollera om 'errors' finns\r",
+							"    pm.expect(res).to.have.property(\"errors\");\r",
+							"\r",
+							"    // Kontrollera om felmeddelandet innehåller information om ogiltigt fält\r",
+							"    pm.expect(res.errors[0].message).to.include('Cannot query field \"last_nam\" on type \"Actor\". Did you mean \"last_name\" or \"first_name\"?');\r",
+							"\r",
+							"    // Kontrollera att felkoden är GRAPHQL_VALIDATION_FAILED\r",
+							"    pm.expect(res.errors[0].extensions.code).to.equal(\"GRAPHQL_VALIDATION_FAILED\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query {\r\n  actors {\r\n    last_nam\r\n    first_name\r\n    actor_id\r\n  }\r\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Rental Count For First 100 Movies",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Testa om svaret innehåller 100 filmer\r",
+							"pm.test(\"Movies array is returned\", function () {\r",
+							"    var jsonResponse = pm.response.json();\r",
+							"    pm.expect(jsonResponse.data.movies.movies.length).to.eql(100);\r",
+							"});\r",
+							"\r",
+							"// Testa om varje film har både rentalCount och title\r",
+							"pm.test(\"Each movie has rentalCount and title\", function () {\r",
+							"    var jsonResponse = pm.response.json();\r",
+							"    var movies = jsonResponse.data.movies.movies;\r",
+							"\r",
+							"    movies.forEach(function(movie) {\r",
+							"        pm.expect(movie).to.have.property(\"rentalCount\");\r",
+							"        pm.expect(movie).to.have.property(\"title\");\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"// Testa om 'hasMore' finns i svaret\r",
+							"pm.test(\"hasMore is returned\", function () {\r",
+							"    var jsonResponse = pm.response.json();\r",
+							"    pm.expect(jsonResponse.data.movies).to.have.property(\"hasMore\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($limit: Int, $offset: Int) {\r\n  movies(limit: $limit, offset: $offset) {\r\n    movies {\r\n      rentalCount\r\n      title\r\n    }\r\n    hasMore\r\n  }\r\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				},
+				"description": "This returns the first 100 movies. If `hasMore` is true, it indicates that more movies are available. To retrieve the next 100, set the `offset` variable to the previous offset value plus 100, ensuring that you fetch the subsequent set of results in order."
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Rental Count for a movie",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response should be successful\", function () {\r",
+							"    pm.response.to.have.status(200); // Kontrollera att HTTP-statusen är 200 OK\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response should be a valid JSON\", function () {\r",
+							"    pm.response.to.be.json; // Kontrollera att svaret är JSON\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Movie object should exist\", function () {\r",
+							"    let jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.data.movie).to.be.an(\"object\"); // Kontrollera att movie finns\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Movie should have rentalCount and title\", function () {\r",
+							"    let jsonData = pm.response.json();\r",
+							"    let movie = jsonData.data.movie;\r",
+							"\r",
+							"    pm.expect(movie).to.have.property(\"title\").that.is.a(\"string\");\r",
+							"    pm.expect(movie).to.have.property(\"rentalCount\").that.is.a(\"number\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"rentalCount should be a positive number\", function () {\r",
+							"    let jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.data.movie.rentalCount).to.be.above(0); // Kontrollera att rentalCount är större än 0\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($movieId: ID!) {\r\n  movie(id: $movieId) {\r\n    rentalCount\r\n    title\r\n  }\r\n}",
+						"variables": "{\r\n  \"movieId\": {{movieId}}\r\n}"
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Rental Count for a non existing movie",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Should return error for missing $movieId in rental fetch request\", function () {\r",
+							"    const res = pm.response.json();\r",
+							"\r",
+							"    // Kontrollera om 'errors' finns\r",
+							"    pm.expect(res).to.have.property(\"errors\");\r",
+							"\r",
+							"    // Kontrollera om felmeddelandet säger att $movieId saknas\r",
+							"    pm.expect(res.errors[0].message).to.include('Variable \"$movieId\" of required type \"ID!\" was not provided.');\r",
+							"\r",
+							"    // Kontrollera att error-koden är BAD_USER_INPUT\r",
+							"    pm.expect(res.errors[0].extensions.code).to.equal(\"BAD_USER_INPUT\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query Query($movieId: ID!) {\r\n  movie(id: $movieId) {\r\n    rentalCount\r\n    title\r\n  }\r\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "https://cscloud6-21.lnu.se/Graphql/",
+					"protocol": "https",
+					"host": [
+						"cscloud6-21",
+						"lnu",
+						"se"
+					],
+					"path": [
+						"Graphql",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
