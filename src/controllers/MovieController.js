@@ -66,9 +66,12 @@ export class MovieController {
     try {
       const [result] = await db.query('SELECT * FROM film WHERE film_id = ?', [id])
       const movie = result[0]
+      if (!movie) {
+        throw new Error(`No movie found with id: ${id}`)
+      }
       return movie
     } catch (error) {
-      throw new Error('Could not fetch movie: ' + error.message)
+      throw new Error(error.message)
     }
   }
 
@@ -238,7 +241,7 @@ export class MovieController {
         throw new Error('No updates where given.')
       }
 
-      values.push(id) // ID should be the last parameter
+      values.push(id) // id should be the last parameter
 
       const query = `UPDATE film SET ${updates.join(', ')} WHERE film_id = ?`
       const [result] = await db.query(query, values)
@@ -246,7 +249,7 @@ export class MovieController {
       if (result.affectedRows > 0) {
         return await this.getMovieById(id)
       } else {
-        throw new Error(`No movie with ID: ${id} found.`)
+        throw new Error(`No movie with id: ${id} found.`)
       }
     } catch (error) {
       throw new Error('Could not find the movie: ' + error.message)
