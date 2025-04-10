@@ -33,9 +33,20 @@ Example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ## Installation Instructions
    - **Steps:**
      - **Clone the Repository:** Instructions to clone the project from GitHub.
+
      - **Navigate to the Project Directory:** Change directory to the cloned repository.
      - **Install Dependencies:** Install necessary packages using `npm install`.
-     - **Configure Environment Variables:** Set up the `.env` file with required environment variables.
+     - **Configure Environment Variables:** Set up the `.env` file with required environment variables.  
+     ```env   
+     PORT=8080  
+     DB_HOST=localhost  
+     DB_USER=root  
+     DB_PASSWORD=&lt;your password&gt;  
+     DB_NAME='sakila'
+     ```  
+     - **Set up your database** 
+     Set up MySQL Workbench and populate it with sakila testdata (provided in a zip file) for further instructions visit [MySQL Workbench](https://www.mysql.com/products/workbench/).  
+     Add an additional table user with columns id_user, username, password.
 ### Testing with Postman:
 - Import the Collection  
 Download the `API-Assignment.postman_collection.json` file from the repo. Import it to postman.
