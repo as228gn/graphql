@@ -1,11 +1,10 @@
-import { ApolloServer } from '@apollo/server' // Importera Apollo Server
+import { ApolloServer } from '@apollo/server'
 import { startStandaloneServer } from '@apollo/server/standalone' // För att köra Apollo Server utan Express
-import { typeDefs } from './schemas/typeDefs.js' // Importera schema (GraphQL)
-import { resolvers } from './resolvers/resolvers.js' // Importera resolvers
-import db from './config/db.js' // Databasanslutning
+import { typeDefs } from './schemas/typeDefs.js'
+import { resolvers } from './resolvers/resolvers.js'
+import db from './config/db.js'
 import { authenticateJWT } from './middlewares/auth.js'
 
-// Hantera databasanslutningen
 db.getConnection()
   .then(() => console.log('Database connected successfully!'))
   .catch((err) => {
@@ -13,11 +12,10 @@ db.getConnection()
     process.exit(1)
   })
 
-// Skapa Apollo Server
 const serverApollo = new ApolloServer({
-  typeDefs, // Ditt schema
-  resolvers, // Ditt resolvers-objekt
-  introspection: true, // Tillåt introspektion i produktion (nödvändigt för Playground)
+  typeDefs,
+  resolvers,
+  introspection: true,
   playground: true
 })
 
@@ -33,8 +31,8 @@ const { url } = await startStandaloneServer(serverApollo, {
   context: async ({ req }) => {
     const user = await authenticateJWT(req)
     return { user }
-  }, // Om du behöver något i kontexten, t.ex. autentisering
-  listen: { port: process.env.PORT || 3000 } // Välj port (standard är 3000)
+  },
+  listen: { port: process.env.PORT || 3000 }
 })
 
-console.log(`Apollo Server running at ${url}`) // Logga GraphQL-URL:en
+console.log(`Apollo Server running at ${url}`)
